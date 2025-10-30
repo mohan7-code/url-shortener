@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"fmt"
 	"net/http"
 	"sync"
 
@@ -20,7 +19,6 @@ var (
 )
 
 func init() {
-	// Initialize logger once (singleton)
 	var err error
 	logConfig := zap.NewProductionConfig()
 
@@ -29,14 +27,13 @@ func init() {
 		panic("failed to initialize zap logger: " + err.Error())
 	}
 
-	fmt.Println("coming here bro", logger)
-
 }
 
 func MiddleWare(next func(*context.Context)) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ip := c.ClientIP()
 
+		//simple Rate limiting using Token Bucket method
 		mu.Lock()
 		limiter, exists := limiters[ip]
 		if !exists {

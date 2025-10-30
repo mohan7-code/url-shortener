@@ -21,7 +21,6 @@ func SetRedis() error {
 		}
 
 		cl = redis.NewClient(option)
-		fmt.Println("cl is", cl)
 	})
 	return err
 }

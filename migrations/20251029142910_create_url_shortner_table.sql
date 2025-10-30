@@ -8,6 +8,9 @@ CREATE TABLE url_shortner (
     created_at TIMESTAMPTZ DEFAULT NOW(),
     last_accessed_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+CREATE INDEX idx_url_shortner_created_at ON url_shortner(created_at);
+
 -- +goose StatementEnd
 
 -- +goose Down

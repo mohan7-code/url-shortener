@@ -20,9 +20,10 @@ import (
 )
 
 type IURLService interface {
-	ShortenURL(ctx *context.Context, originalURL string) (*models.URL, error)
+	ShortenURL(ctx *context.Context, req *dtos.URLRequest) (*models.URL, error)
 	GetOriginalURL(ctx *context.Context, shortCode string) (*models.URL, error)
 	ListURLs(ctx *context.Context, page, limit int) (*dtos.ListResponse, error)
+	GetAnalytics(ctx *context.Context, shortCode string) (*dtos.Analytics, error)
 }
 
 type urlServiceImpl struct {
@@ -35,27 +36,28 @@ func NewURLService() IURLService {
 	}
 }
 
-func (s *urlServiceImpl) ShortenURL(ctx *context.Context, originalURL string) (*models.URL, error) {
-	if originalURL == "" {
+func (s *urlServiceImpl) ShortenURL(ctx *context.Context, req *dtos.URLRequest) (*models.URL, error) {
+	if req.OriginalURL == "" {
 		return nil, errors.New("original URL cannot be empty")
 	}
 
-	if !helper.IsValidURL(originalURL) {
-		ctx.Log.Warn("invalid URL format", zap.String("url", originalURL))
+	if !helper.IsValidURL(req.OriginalURL) {
+		ctx.Log.Warn("invalid URL format", zap.String("url", req.OriginalURL))
 		return nil, errors.New("invalid URL format — must be a valid  URL")
 	}
 
 	rdb := cache.New().Client
-	// Check Redis cache first
-	if cachedShortCode, err := rdb.Get(ctx, originalURL).Result(); err == nil && cachedShortCode != "" {
+
+	if cachedShortCode, err := rdb.Get(ctx, req.OriginalURL).Result(); err == nil && cachedShortCode != "" {
 		ctx.Log.Info("cache hit for original URL", zap.String("short_code", cachedShortCode))
 		return &models.URL{
-			OriginalURL: originalURL,
+			OriginalURL: req.OriginalURL,
 			ShortCode:   cachedShortCode,
 		}, nil
 	}
 
-	existing, err := s.repo.GetByOriginalURL(ctx, originalURL)
+	// Check if URL already exists in DB
+	existing, err := s.repo.GetByOriginalURL(ctx, req.OriginalURL)
 	if err != nil {
 		ctx.Log.Error("error checking existing URL", zap.Error(err))
 		return nil, err
@@ -67,22 +69,43 @@ func (s *urlServiceImpl) ShortenURL(ctx *context.Context, originalURL string) (*
 	}
 
 	var shortCode string
-	for {
-		shortCode = generateShortCode(originalURL)
 
-		existingCode, err := s.repo.GetUrlByShortCode(ctx, shortCode)
+	//custom alias, can give your own custom name
+	if req.CustomAlias != "" {
+
+		existingAlias, err := s.repo.GetUrlByShortCode(ctx, req.CustomAlias)
 		if err != nil {
+			ctx.Log.Error("failed to check custom alias availability", zap.Error(err))
 			return nil, err
 		}
 
-		if existingCode == nil {
-			break
+		if existingAlias != nil {
+			ctx.Log.Warn("custom alias already taken", zap.String("alias", req.CustomAlias))
+			return nil, errors.New("custom alias already taken, please choose another one")
+		}
+
+		shortCode = req.CustomAlias
+
+	} else {
+
+		for {
+			shortCode = generateShortCode(req.OriginalURL)
+			existingCode, err := s.repo.GetUrlByShortCode(ctx, shortCode)
+			if err != nil {
+				ctx.Log.Error("failed to check generated short code availability", zap.Error(err))
+				return nil, err
+			}
+			if existingCode == nil {
+				ctx.Log.Info("generated unique short code", zap.String("short_code", shortCode))
+				break
+			}
 		}
 	}
+
 	url := &models.URL{
 		ID:             uuid.New(),
 		ShortCode:      shortCode,
-		OriginalURL:    originalURL,
+		OriginalURL:    req.OriginalURL,
 		ClickCount:     0,
 		LastAccessedAt: time.Now(),
 	}
@@ -93,8 +116,9 @@ func (s *urlServiceImpl) ShortenURL(ctx *context.Context, originalURL string) (*
 		return nil, err
 	}
 
-	rdb.Set(ctx, shortCode, originalURL, 24*time.Hour).Err()
-	rdb.Set(ctx, originalURL, shortCode, 24*time.Hour).Err()
+	// set cache eiether way
+	rdb.Set(ctx, shortCode, req.OriginalURL, 24*time.Hour).Err()
+	rdb.Set(ctx, req.OriginalURL, shortCode, 24*time.Hour).Err()
 
 	ctx.Log.Info("shortened URL created", zap.String("short_code", shortCode))
 	return url, nil
@@ -124,6 +148,7 @@ func (s *urlServiceImpl) GetOriginalURL(ctx *context.Context, shortCode string) 
 		return nil, errors.New("short code not found")
 	}
 
+	// Cache for future requests
 	rdb.Set(ctx, shortCode, url.OriginalURL, 24*time.Hour)
 
 	if err := s.repo.IncrementClickCount(ctx, url.ID.String()); err != nil {
@@ -161,8 +186,29 @@ func (s *urlServiceImpl) ListURLs(ctx *context.Context, page, limit int) (*dtos.
 	}, nil
 }
 
-func generateShortCode(originalURL string) string {
+func (s *urlServiceImpl) GetAnalytics(ctx *context.Context, shortCode string) (*dtos.Analytics, error) {
+
+	url, err := s.repo.GetUrlByShortCode(ctx, shortCode)
+	if err != nil {
+		ctx.Log.Error("failed to fetch analytics", zap.Error(err))
+		return nil, err
+	}
+	if url == nil {
+		return nil, errors.New("short code not found")
+	}
+
+	result := &dtos.Analytics{
+		ShortCode:      url.ShortCode,
+		OriginalURL:    url.OriginalURL,
+		ClickCount:     url.ClickCount,
+		LastAccessedAt: url.LastAccessedAt,
+	}
+
+	return result, nil
+}
+
+func generateShortCode(url string) string {
 	hash := sha1.New()
-	hash.Write([]byte(fmt.Sprintf("%s-%d", originalURL, time.Now().UnixNano())))
+	hash.Write([]byte(fmt.Sprintf("%s-%d", url, time.Now().UnixNano())))
 	return base64.URLEncoding.EncodeToString(hash.Sum(nil))[:8]
 }

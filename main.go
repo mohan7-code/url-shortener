@@ -2,11 +2,11 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/mohan7-code/url-shortener/config"
@@ -16,7 +16,7 @@ import (
 )
 
 func main() {
-	fmt.Println("URL Shortener Service starting...")
+	log.Printf("URL Shortener Service starting...")
 
 	cnf, err := config.LoadConfig(".env")
 	if err != nil {
@@ -42,20 +42,21 @@ func main() {
 	}()
 
 	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, os.Interrupt)
+	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 
-	<-stop // wait for interrupt signal
-
+	<-stop
 	log.Println("Shutting down server...")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	// Gracefully shutdown
+	// Graceful shutdown
 	if err := server.Shutdown(ctx); err != nil {
 		log.Fatalf("Shutdown failed: %v", err)
 	}
 
 	sqlDB, _ := database.DB.DB()
 	sqlDB.Close()
+
+	log.Println("Server stopped gracefully.")
 }

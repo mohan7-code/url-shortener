@@ -20,7 +20,7 @@ func CreateShortURL(c *context.Context) {
 	}
 
 	s := service.NewURLService()
-	url, err := s.ShortenURL(c, req.OriginalURL)
+	url, err := s.ShortenURL(c, &req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -39,7 +39,7 @@ func RedirectURL(c *context.Context) {
 	s := service.NewURLService()
 	url, err := s.GetOriginalURL(c, shortCode)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "URL not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -54,9 +54,21 @@ func ListURLs(c *context.Context) {
 	s := service.NewURLService()
 	resp, err := s.ListURLs(c, page, limit)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to list urls"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	c.JSON(http.StatusOK, resp)
+}
+
+func GetAnalytics(ctx *context.Context) {
+	code := ctx.Param("code")
+
+	data, err := service.NewURLService().GetAnalytics(ctx, code)
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, data)
 }

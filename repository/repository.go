@@ -16,22 +16,21 @@ type IURLRepository interface {
 	GetByOriginalURL(ctx *context.Context, originalURL string) (*models.URL, error)
 	IncrementClickCount(ctx *context.Context, id string) error
 	IncrementClickCountByShortCode(ctx *context.Context, code string) error
-	UpdateLastAccessed(ctx *context.Context, id string) error
 	ListURLs(ctx *context.Context, limit, offset int) ([]*models.URL, int64, error)
 }
 
-type urlRepositoryImpl struct {
+type urlRepository struct {
 }
 
 func NewURLRepository() IURLRepository {
-	return &urlRepositoryImpl{}
+	return &urlRepository{}
 }
 
-func (r *urlRepositoryImpl) getTable() string {
+func (r *urlRepository) getTable() string {
 	return "url_shortner"
 }
 
-func (r *urlRepositoryImpl) Create(ctx *context.Context, url *models.URL) error {
+func (r *urlRepository) Create(ctx *context.Context, url *models.URL) error {
 	err := ctx.DB.WithContext(ctx).Table(r.getTable()).Save(url).Error
 	if err != nil {
 		ctx.Log.Error("failed to create short url", zap.Error(err))
@@ -40,7 +39,7 @@ func (r *urlRepositoryImpl) Create(ctx *context.Context, url *models.URL) error 
 	return nil
 }
 
-func (r *urlRepositoryImpl) GetUrlByShortCode(ctx *context.Context, shortCode string) (*models.URL, error) {
+func (r *urlRepository) GetUrlByShortCode(ctx *context.Context, shortCode string) (*models.URL, error) {
 	var url models.URL
 	err := ctx.DB.Debug().WithContext(ctx).Table(r.getTable()).Where("short_code = ?", shortCode).First(&url).Error
 	if err != nil {
@@ -54,7 +53,7 @@ func (r *urlRepositoryImpl) GetUrlByShortCode(ctx *context.Context, shortCode st
 	return &url, nil
 }
 
-func (r *urlRepositoryImpl) GetByOriginalURL(ctx *context.Context, originalURL string) (*models.URL, error) {
+func (r *urlRepository) GetByOriginalURL(ctx *context.Context, originalURL string) (*models.URL, error) {
 	var url models.URL
 	err := ctx.DB.Table(r.getTable()).Where("original_url = ?", originalURL).First(&url).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
@@ -64,7 +63,7 @@ func (r *urlRepositoryImpl) GetByOriginalURL(ctx *context.Context, originalURL s
 	return &url, nil
 }
 
-func (r *urlRepositoryImpl) IncrementClickCount(ctx *context.Context, id string) error {
+func (r *urlRepository) IncrementClickCount(ctx *context.Context, id string) error {
 	err := ctx.DB.WithContext(ctx).Table(r.getTable()).
 		Where("id = ?", id).
 		Updates(map[string]interface{}{
@@ -79,7 +78,7 @@ func (r *urlRepositoryImpl) IncrementClickCount(ctx *context.Context, id string)
 	return nil
 }
 
-func (r *urlRepositoryImpl) IncrementClickCountByShortCode(ctx *context.Context, code string) error {
+func (r *urlRepository) IncrementClickCountByShortCode(ctx *context.Context, code string) error {
 	err := ctx.DB.WithContext(ctx).Table(r.getTable()).
 		Where("short_code = ?", code).
 		Updates(map[string]interface{}{
@@ -94,22 +93,7 @@ func (r *urlRepositoryImpl) IncrementClickCountByShortCode(ctx *context.Context,
 	return nil
 }
 
-func (r *urlRepositoryImpl) UpdateLastAccessed(ctx *context.Context, id string) error {
-	err := ctx.DB.WithContext(ctx).
-		Table(r.getTable()).
-		Where("id = ?", id).
-		Updates(map[string]interface{}{
-			"last_accessed_at": time.Now(),
-		}).Error
-
-	if err != nil {
-		ctx.Log.Error("failed to update last accessed", zap.String("id", id), zap.Error(err))
-		return err
-	}
-	return nil
-}
-
-func (r *urlRepositoryImpl) ListURLs(ctx *context.Context, limit, offset int) ([]*models.URL, int64, error) {
+func (r *urlRepository) ListURLs(ctx *context.Context, limit, offset int) ([]*models.URL, int64, error) {
 	var urls []*models.URL
 	var total int64
 

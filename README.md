@@ -62,7 +62,7 @@ A **production-ready backend service** built with **Go**, **PostgreSQL**, and **
 ### 1️⃣ Clone the Repository
 
 ```bash
-git clone https://github.com/<your-username>/url-shortener.git
+git clone https://github.com/mohan7-code/url-shortener.git
 cd url-shortener
 ``` 
 
@@ -131,6 +131,14 @@ curl -X POST http://localhost:8080/v1/shorten \
 -H "Content-Type: application/json" \
 -d '{"original_url": "https://www.example.com/some/very/long/url"}'
 ```
+
+**Request (with custom alias):**
+```bash
+curl -X POST http://localhost:8080/v1/shorten \
+-H "Content-Type: application/json" \
+-d '{"original_url": "https://www.example.com/about","custom_alias": "mybrand"}'
+```
+
 **Response:**
 ```bash
 {
@@ -142,7 +150,7 @@ curl -X POST http://localhost:8080/v1/shorten \
 ### 🔹 2. Redirect to Original URL
 
 **Endpoint:**
-`GET /v1/{short_code}`
+`GET /v1/:short_code`
 
 **Description:** 
 Redirects the user to the original long URL.
@@ -197,7 +205,27 @@ curl -X GET "http://localhost:8080/v1/urls?page=1&limit=10"
 }
 ```
 
-## 🏗️ Architectural Overview
+### 🔹 4. Total Analytics and last accessed time
+
+**Endpoint:**
+`GET /v1/analytics/:code`
+
+**Description:** 
+It will give the total clics/analytics of a particular url.
+
+**Request:**
+```bash
+curl -L http://localhost:8080/v1/analytics/:code
+```
+**Response:**
+```bash
+{
+    "short_code": "Uswmtf4a",
+    "original_url": "https://github.com",
+    "click_count": 7,
+    "last_accessed_at": "2025-10-30T10:23:16.502812Z"
+}
+```
 
 ## 🏗️ Architectural Overview
 
