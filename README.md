@@ -110,7 +110,7 @@ This will:
 
 ---
 
----
+
 ## ⚠️ Security Note  
 
 Database credentials are hardcoded in `docker-compose.yml` for simplicity and demo purposes.  
