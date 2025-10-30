@@ -10,14 +10,13 @@ type ListResponse struct {
 	Pages      int   `json:"pages"`
 }
 
-type URLRequest struct {
-	OriginalURL string `json:"original_url"`
-	CustomAlias string `json:"custom_alias"`
-}
-
 type Analytics struct {
 	ShortCode      string    `json:"short_code"`
 	OriginalURL    string    `json:"original_url"`
 	ClickCount     int64     `json:"click_count"`
 	LastAccessedAt time.Time `json:"last_accessed_at"`
+}
+type URLRequest struct {
+	OriginalURL string `json:"original_url"`
+	CustomAlias string `json:"custom_alias"`
 }

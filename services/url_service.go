@@ -37,6 +37,7 @@ func NewURLService() IURLService {
 }
 
 func (s *urlServiceImpl) ShortenURL(ctx *context.Context, req *dtos.URLRequest) (*models.URL, error) {
+
 	if req.OriginalURL == "" {
 		return nil, errors.New("original URL cannot be empty")
 	}
@@ -125,6 +126,7 @@ func (s *urlServiceImpl) ShortenURL(ctx *context.Context, req *dtos.URLRequest) 
 }
 
 func (s *urlServiceImpl) GetOriginalURL(ctx *context.Context, shortCode string) (*models.URL, error) {
+
 	if strings.TrimSpace(shortCode) == "" {
 		return nil, errors.New("short code cannot be empty")
 	}
@@ -159,6 +161,7 @@ func (s *urlServiceImpl) GetOriginalURL(ctx *context.Context, shortCode string) 
 }
 
 func (s *urlServiceImpl) ListURLs(ctx *context.Context, page, limit int) (*dtos.ListResponse, error) {
+
 	if page <= 0 {
 		page = 1
 	}

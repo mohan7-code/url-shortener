@@ -5,6 +5,7 @@ import (
 )
 
 func IsValidURL(rawURL string) bool {
+
 	parsed, err := url.ParseRequestURI(rawURL)
 	if err != nil {
 		return false

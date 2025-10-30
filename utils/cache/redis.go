@@ -12,6 +12,7 @@ var once sync.Once
 var cl *redis.Client
 
 func SetRedis() error {
+
 	var err error
 	once.Do(func() {
 		option, err := redis.ParseURL(config.AppConfig.RedisURL)

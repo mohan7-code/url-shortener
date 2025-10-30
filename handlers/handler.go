@@ -62,6 +62,7 @@ func ListURLs(c *context.Context) {
 }
 
 func GetAnalytics(ctx *context.Context) {
+
 	code := ctx.Param("code")
 
 	data, err := service.NewURLService().GetAnalytics(ctx, code)

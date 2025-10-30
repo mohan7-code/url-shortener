@@ -13,6 +13,7 @@ type Context struct {
 }
 
 func (a *Context) Copy() *Context {
+
 	return &Context{
 		DB:      a.DB,
 		Log:     a.Log,

@@ -7,7 +7,6 @@ import (
 )
 
 func UrlRoutes(router *gin.RouterGroup) {
-
 	router.POST("/shorten", mw.MiddleWare(handler.CreateShortURL))
 	router.GET("/:shortCode", mw.MiddleWare(handler.RedirectURL))
 	router.GET("/urls", mw.MiddleWare(handler.ListURLs))

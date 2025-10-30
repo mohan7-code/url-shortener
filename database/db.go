@@ -23,6 +23,7 @@ type Config struct {
 }
 
 func Init(config *Config) error {
+
 	var err error
 	once.Do(func() {
 		var sqlDB *sql.DB

@@ -79,6 +79,7 @@ func (r *urlRepository) IncrementClickCount(ctx *context.Context, id string) err
 }
 
 func (r *urlRepository) IncrementClickCountByShortCode(ctx *context.Context, code string) error {
+
 	err := ctx.DB.WithContext(ctx).Table(r.getTable()).
 		Where("short_code = ?", code).
 		Updates(map[string]interface{}{
