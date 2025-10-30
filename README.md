@@ -84,8 +84,8 @@ DATABASE_URL=postgres://<db_user>:<db_password>@db:5432/<db_name>?sslmode=disabl
 #Db connections
 MAX_DB_CONN=20
 
-# Base Short URL (used for generating short links)
-BASE_SHORT_URL=http://localhost:8080
+# Base Short URL 
+BASE_SHORT_URL=https://sho.rt
 
 # Redis Configuration
 # Use 'redis' for Docker, or 'localhost' for local development
@@ -109,6 +109,12 @@ This will:
 - Launch the **Go application** on port `8080`
 
 ---
+
+## ⚠️ Security Note  
+
+Database credentials are hardcoded in `docker-compose.yml` for simplicity and demo purposes.  
+**In production**, always store them securely — for example, using **environment variables**, **Docker secrets**, or a **secret manager** (like AWS Secrets Manager).
+
 
 ## 📡 API Documentation
 
