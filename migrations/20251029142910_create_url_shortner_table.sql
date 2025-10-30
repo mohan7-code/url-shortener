@@ -9,6 +9,7 @@ CREATE TABLE url_shortner (
     last_accessed_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+CREATE UNIQUE INDEX idx_short_code ON url_shortner(short_code);
 CREATE INDEX idx_url_shortner_created_at ON url_shortner(created_at);
 
 -- +goose StatementEnd

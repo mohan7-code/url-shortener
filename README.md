@@ -2,7 +2,7 @@
 
 # 🔗 URL Shortener Service
 
-A **production-ready backend service** built with **Go**, **PostgreSQL**, and **Redis** that allows users to shorten long URLs and redirect them efficiently.
+A **backend service** built with **Go**, **PostgreSQL**, and **Redis** that allows users to shorten long URLs and redirect them efficiently.
 
 ---
 
