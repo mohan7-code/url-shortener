@@ -298,6 +298,7 @@ curl -L http://localhost:8080/v1/analytics/:code
 | **Logger (Zap)** | Structured logging for all layers. |
 
 
+---
 
 ## 🧩 Design Decisions & Trade-offs
 
