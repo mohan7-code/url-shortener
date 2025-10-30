@@ -110,11 +110,13 @@ This will:
 
 ---
 
+---
 ## ⚠️ Security Note  
 
 Database credentials are hardcoded in `docker-compose.yml` for simplicity and demo purposes.  
 **In production**, always store them securely — for example, using **environment variables**, **Docker secrets**, or a **secret manager** (like AWS Secrets Manager).
 
+---
 
 ## 📡 API Documentation
 
