@@ -46,7 +46,6 @@ func MiddleWare(next func(*context.Context)) gin.HandlerFunc {
 		mu.Unlock()
 
 		if !limiter.Allow() {
-			fmt.Println("came here")
 			c.JSON(http.StatusTooManyRequests, gin.H{"error": "Too Many Requests"})
 			c.Abort()
 			return

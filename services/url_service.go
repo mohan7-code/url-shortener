@@ -108,6 +108,10 @@ func (s *urlServiceImpl) GetOriginalURL(ctx *context.Context, shortCode string) 
 	rdb := cache.New().Client
 	if cachedURL, err := rdb.Get(ctx, shortCode).Result(); err == nil && cachedURL != "" {
 		ctx.Log.Info("cache hit for short code", zap.String("short_code", shortCode))
+
+		if err := s.repo.IncrementClickCountByShortCode(ctx, shortCode); err != nil {
+			ctx.Log.Warn("failed to increment click count ", zap.String("short_code", shortCode), zap.Error(err))
+		}
 		return &models.URL{OriginalURL: cachedURL}, nil
 	}
 

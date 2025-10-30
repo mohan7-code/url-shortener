@@ -15,6 +15,7 @@ type IURLRepository interface {
 	GetUrlByShortCode(ctx *context.Context, shortCode string) (*models.URL, error)
 	GetByOriginalURL(ctx *context.Context, originalURL string) (*models.URL, error)
 	IncrementClickCount(ctx *context.Context, id string) error
+	IncrementClickCountByShortCode(ctx *context.Context, code string) error
 	UpdateLastAccessed(ctx *context.Context, id string) error
 	ListURLs(ctx *context.Context, limit, offset int) ([]*models.URL, int64, error)
 }
@@ -73,6 +74,21 @@ func (r *urlRepositoryImpl) IncrementClickCount(ctx *context.Context, id string)
 
 	if err != nil {
 		ctx.Log.Error("failed to increment click count", zap.String("id", id), zap.Error(err))
+		return err
+	}
+	return nil
+}
+
+func (r *urlRepositoryImpl) IncrementClickCountByShortCode(ctx *context.Context, code string) error {
+	err := ctx.DB.WithContext(ctx).Table(r.getTable()).
+		Where("short_code = ?", code).
+		Updates(map[string]interface{}{
+			"click_count":      gorm.Expr("click_count + ?", 1),
+			"last_accessed_at": time.Now(),
+		}).Error
+
+	if err != nil {
+		ctx.Log.Error("failed to increment click count", zap.String("code", code), zap.Error(err))
 		return err
 	}
 	return nil

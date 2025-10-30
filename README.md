@@ -73,9 +73,22 @@ cd url-shortener
 Create a `.env` file in the root directory and add the following:
 
 ```env
+# Server Configuration
 SERVER_PORT=8080
-DATABASE_URL=postgres://postgres:postgres@db:5432/postgres?sslmode=disable
+
+# Database Configuration
+# Use 'db' as host when running via Docker Compose
+# Use 'localhost' when running locally without Docker
+DATABASE_URL=postgres://<db_user>:<db_password>@db:5432/<db_name>?sslmode=disable
+
+#Db connections
+MAX_DB_CONN=20
+
+# Base Short URL (used for generating short links)
 BASE_SHORT_URL=http://localhost:8080
+
+# Redis Configuration
+# Use 'redis' for Docker, or 'localhost' for local development
 REDIS_URL=redis://redis:6379
 ```
 ---
